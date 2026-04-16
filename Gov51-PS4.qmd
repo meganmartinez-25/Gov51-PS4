@@ -69,4 +69,23 @@ One reason why people with education might earn more even if education had no ef
 
 ```{r}
 
+near_4college <- card |> 
+  filter(nearc4 ==1)
+      
+  count(near_4college) 
+
+ 2053/3010
+
+```
+
+The share of respondents in this sample that grew up near a 4-year college is 68.21% of the sample.
+
+2.2 Relevance: does proximity affect causation
+
+```{r}
+first_stage <- lm_robust(educ ~ nearc4 + black + smsa + south +
+exper + expersq + married,
+data = card, se_type = "HC2")
+
+first_stage
 ```
