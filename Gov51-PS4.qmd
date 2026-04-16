@@ -1,0 +1,72 @@
+---
+title: "Gov 51 PS4"
+format: pdf
+editor: visual
+---
+
+## Gov 51 PS4
+
+1.1 Setup and Exploration
+
+-   Load Packages and Data
+
+```{r}
+install.packages("estimatr")
+library(tidyverse)
+library(estimatr)
+library(modelsummary)
+
+card <- read_csv("data/raw/card1995.csv")
+
+card
+```
+
+1.2 Describe the Data
+
+```{r}
+nrow(card)
+```
+
+There are 3,010 observations in the dataset. The unit of observation is log wages.
+
+1.3: Distribution of years of education
+
+```{r}
+educ_hist <- ggplot(data=card, aes(x = educ)) + 
+                      geom_histogram(stat = "count", fill = "black", binwidth = 1) + 
+                      geom_vline(xintercept = mean(card$educ), na.rm = TRUE, color = "red", linetype = "dashed") + 
+                      labs(title = "Histogram for Distribution of Years of Education", 
+                           x = "Years of Education", 
+                           y = "Count") 
+educ_hist
+mean(card$educ)
+```
+
+This histogram indicates the distribution of the individuals in the data set of their years of education completed. The mean is 13.26346, which is demonstrated by the red dashed line. There is a large spike at at 12 years of education, and an unusual spike at 16 years of education. This is representative of the college educated population. Most people do not drop out of college, so there is likely to be a large spike at 16 years when most people finish college and stop their academic journeys.
+
+1.4 The naive relationship
+
+```{r}
+educ_scatter <- plot(card$educ, card$lwage, 
+                     main = "Educ vs. Log Wages", 
+                     xlab = "Years of Education", 
+                     ylab = "Log Wages", 
+                     col = "black", 
+                     pch = 16) 
+
+abline(lm(card$lwage ~ card$educ), col = "darkred", lwd = 4)
+                  
+                     
+```
+
+Yes, there appears to be a slight positive association with an increase in years of education being correlated with an increase in higher wages, however, we do not have an incredibly steep line which indicates that there is still a lot of variation in the data.
+
+1.5 Why OLS might be misleading
+
+One reason why people with education might earn more even if education had no effect is the fact that oftentimes, those who have had the opportunity to go to school for longer, starting in preschool and extending to graduate school, come from a wealthier background to be able to afford these institutions. As a result, they might have the opportunity to spend summers doing internships and gaining skills to be more competitive in application cycles and ultimately secure higher paying jobs. In addition, students who have had more years of education are likely to be students who are very intelligent and driven, and therefore, are going to push themselves in their future occupations; ultimately resulting in higher-paying jobs or promotions.
+
+2.1 What the instrument measures
+
+```{r}
+
+```
