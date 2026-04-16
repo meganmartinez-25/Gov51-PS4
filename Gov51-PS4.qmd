@@ -6,6 +6,10 @@ editor: visual
 
 ## Gov 51 PS4
 
+github repository:
+
+<https://github.com/meganmartinez-25/Gov51-PS4>
+
 1.1 Setup and Exploration
 
 -   Load Packages and Data
