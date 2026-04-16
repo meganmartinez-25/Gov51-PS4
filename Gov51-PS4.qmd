@@ -27,7 +27,7 @@ card
 nrow(card)
 ```
 
-There are 3,010 observations in the dataset. The unit of observation is log wages.
+There are 3,010 observations in the dataset. The unit of observation is log wages or percent.
 
 1.3: Distribution of years of education
 
@@ -89,3 +89,159 @@ data = card, se_type = "HC2")
 
 first_stage
 ```
+
+The coefficient on nearc4 is 0.327, and its standard error 0.08055. The t-statistic is 4.06075.
+
+If a respondent grew up near a 4-year college, they are more likely to have .327 years of education more than a respondent who did not grow up near a 4 year college.
+
+The sign does make sense because a positive association indicates that the closer one is to a college the more likely they will continue their education and increase their years of educ (ie. go to college). This is more probably if you are closer to a college campus because it lowers the barriers of entry to having access and attending a college.
+
+2.3 Checking instrument strength
+
+```{r}
+t_stat <- 4.06075
+
+F_stat <- (t_stat)^2
+
+F_stat
+```
+
+The first stage F-statistic is F = 16.4969. This instrument is strong as it surpasses the rule of thumb F\> 10.
+
+Instrument is crucial for the reliability of the 2SLS estimate because a strong instrument predicts the treatment variable well, and only will affect the outcome variable through the treatment. If we did not have a strong estimate, we would not be able to separate the bias from the OLS estimate, which is the purpose of doing 2SLS. If our instrument is weak, it will not be able to explain the variation in our treatment variable, so it won't be able to effectively isolate the clean variation being caused by this instrument variable from other noise.
+
+2.4 Exclusion restriction
+
+a\) Nearc4 and lwage cannot be correlated with one another, nearc4 must only influence lwage through its influence on educ. The relationship should hold that if education is held constant there is no correlation between proximity to college to log wages.
+
+b\) Once again, college towns are often very expensive, and most people in these areas are either affiliated with a university or have extremely wealthy positions. Therefore, students who are growing up in this area are more likely to begin to have connections with figures in the university scene that can help prepare them for a future career or they come from a higher socioeconomic background that would allow the student to gain connections in companies to enter into higher paying occupations.
+
+2.5 Balance Check
+
+```{r}
+balance_check <- card |> 
+  group_by(nearc4) |> 
+  summarise(
+    mean_black = mean(black, na.rm = TRUE), 
+    mean_smsa = mean(smsa, na.rm = TRUE), 
+    mean_south = mean(south, na.rm = TRUE)
+  )
+
+balance_check
+```
+
+On average the groups are not very similar to one another. The only group that is relatively close is the black groups, but even these are different between each other. This tells us that proximity to a four year college may actually be correlated with these pre-characterstics. This mean that the instrument could be picking up these differences between groups, rather than just the impact that proximity to a four year college has on your years of education.
+
+3.1 Compute the Reduced Form
+
+```{r}
+reduced_form <- lm_robust(lwage ~ nearc4 + black + smsa + south +
+exper + expersq + married,
+data = card, se_type = "HC2")
+
+reduced_form
+```
+
+The coefficient for nearc4 is 0.04085, which means that when when an individual lives closer to a 4 year college, their wages is greater by 4.085%, than the individuals who do not live close to a 4 year college.
+
+This indicates that with a greater proximity to a college, your log wages increase very minimally; however, because the t-statistic is greater than 1.96, it is statistically significant, so there is a small increase relationship even if it does not appear like a lot in impact on wages.
+
+3.2 Calculate the Wald estimator by hand
+
+```{r}
+reduced_coef <- 0.04085
+first_coef <- 0.327
+
+t_wald <- reduced_coef/first_coef
+t_wald
+```
+
+The Wald estimator is 0.1249.
+
+3.3 Interpret the Wald Estimator
+
+For every increase in years of education caused by living near a four year college, ones log wages increases by 0.1249.
+
+4.1 OLS Estimate
+
+```{r}
+ols <- lm_robust(lwage ~ educ + black + smsa + south +
+exper + expersq + married,
+data = card, se_type = "HC2")
+
+ols
+```
+
+The coefficient for educ is 0.0715.
+
+4.2 2SLS Estimate
+
+```{r}
+iv <- iv_robust(lwage ~ educ + black + smsa + south +
+exper + expersq + married |
+nearc4 + black + smsa + south +
+exper + expersq + married,
+data = card, se_type = "HC2")
+
+iv
+```
+
+The coefficient on educ is 0.12489.
+
+This does match the Wald estimate which was 0.1249 from section 3.2.
+
+4.3 Side-by-Side comparison
+
+```{r}
+modelsummary(list("OLS" = ols, "2SLS" = iv),
+coef_map = c("educ" = "Years of Education"),
+gof_map = c("nobs", "r.squared"))
+```
+
+a\) The 2SLS estimate of the return to education is larger than the OLS estimate.
+
+b\) OLS estimates the average return to college for the sample, including students who were already going to go to college or receive a higher education degree. This group may represent students who have greater resources, higher abilities, or come from an economic background that would have already set them up for success later in life. Therefore, this group's return to education might be much lower because they were already going to be successful later in life. On the other hand, 2SLS captures the individuals who only went to college because they lived close to one, which may indicate those with fewer resources, lower incomes, and uncertain about college. As a result, choosing college and getting an education may have altered their future and given them a path to securing a stable job with high wages, making their return on education much greater. 2SLS focuses on the compliers, and as a result, may highlight those who were changed by he opportunity and access to go to college.
+
+c\) 2SLS is more credible as a causal estimate because it uses an instrumental variable, nearc4, as a mechanism for isolating the effect that can be determined to be random, which is one's proximity to a college, and eliminate the variation in the outcome of log wages that we do not know if was caused by education. Therefore, 2SLS is much closer to a causal question because it is asking if under a random enviornment, such as living lose to a school campus or not, what effect does your education because of your proximity have on your earnings.
+
+4.5 Adding IQ as a control
+
+```{r}
+
+ols_IQ <- lm_robust(lwage ~ educ + black + smsa + south +
+exper + expersq + married + IQ,
+data = card, se_type = "HC2")
+
+ols_IQ
+```
+
+a\) Including IQ as a control shrinks the educ coefficient from 0.071 to 0.0676.
+
+b\) 2SLS
+
+```{r}
+
+iv_IQ <- iv_robust(lwage ~ educ + IQ + black + smsa + south +
+exper + expersq + married |
+nearc4 + black + smsa + south +
+exper + expersq + married + IQ,
+data = card, se_type = "HC2")
+
+iv_IQ
+```
+
+The coefficient after including IQ for 2SLS is 0.109, which is smaller than our previous 2SLS, 0.125.
+
+c\) Because there remains a gap between OLS and 2SLS coefficients, but it has begun to shrink. The gap was originally 0.054, but the gap has now shrunk to 0.0414. However, because there still is a gap this indicates that IQ was not the factor that explains the discrepancy between OLS and 2SLS, but IQ is now soaking up a little more of the ability bias that could be distinguishing the groups. OLS is still being pulled by downward bias though, and 2SLS is still capturing the higher return rate from the specific group of people whose education was influenced by their proximity to a 4 year college.
+
+5.1 Who are the compliers?
+
+In this context, the compliers are individuals who chose to go to college or continue their education because they grew up new a four year college, but they would not have attended college if not for their proximity to one growing up. These are likely to be individuals from low income backgrounds who are receiving in-state tuition or maybe county benefits for proximity to a college. These are students who received information about the college because they were likely surrounded by events or student fairs that these lower income students could attend. They could also be first generation students who know about the college admissions process and the potential of going to college because it would be more feasible to attend a college near them. Lastly, this specifically excludes students who come from higher incomes where they would have attended a college regardless, and therefore, facing greater returns for college than if they were faced with not being able to attend a college at all.
+
+5.2 Write the LATE interpretation
+
+For male students who only went to college because they grew up near a 4-year college, for every additional year of education their wages increased by 12.5%.
+
+5.3 External Validity
+
+No, this is LATE is not likely to be the same as the ATE because our complier group is specifically looking at men, who most likely came from a background where going to college was not normal and would make a significant difference on the type of job one would be able to get, and their wage as a result. This complier group is likely to have higher returns to education than the typical person.
