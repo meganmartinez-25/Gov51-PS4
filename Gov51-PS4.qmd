@@ -96,7 +96,7 @@ first_stage
 
 The coefficient on nearc4 is 0.327, and its standard error 0.08055. The t-statistic is 4.06075.
 
-If a respondent grew up near a 4-year college, they are more likely to have .327 years of education more than a respondent who did not grow up near a 4 year college.
+If a respondent grew up near a 4-year college, they are more likely to have .327 years of education on average more than a respondent who did not grow up near a 4 year college, holding all else equal.
 
 The sign does make sense because a positive association indicates that the closer one is to a college the more likely they will continue their education and increase their years of educ (ie. go to college). This is more probably if you are closer to a college campus because it lowers the barriers of entry to having access and attending a college.
 
